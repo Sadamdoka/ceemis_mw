@@ -1,16 +1,18 @@
 //Removing Preloader
 setTimeout(function () {
-    var preloader = document.getElementById('preloader');
+    var preloader = document.getElementById('loader');
     if (preloader) {
         preloader.classList.add('preloader-hide');
     }
-}, 150);
+}, 0);
 
 document.addEventListener('DOMContentLoaded', () => {
     'use strict'
 
     //Place all your custom Javascript functions and plugin calls below this line
     function Init() {
+        
+        document.getElementById('loader-style').style.display = 'none';
         document.addEventListener('contextmenu', (e) => e.preventDefault()); // Disable right-click
         //document.addEventListener('copy', (e) => e.preventDefault());        // Disable copy
         //document.addEventListener('paste', (e) => e.preventDefault());       // Disable paste
@@ -56,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function InitHome() {
             console.log('Initializing Home');
-
             const storedUserDataString = localStorage.getItem('userData');
             const storedUserData = JSON.parse(storedUserDataString);
 
