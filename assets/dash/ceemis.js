@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //Place all your custom Javascript functions and plugin calls below this line
     function Init() {
-        
+
         document.getElementById('loader-style').style.display = 'none';
         document.addEventListener('contextmenu', (e) => e.preventDefault()); // Disable right-click
         //document.addEventListener('copy', (e) => e.preventDefault());        // Disable copy
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const storedUserDataString = localStorage.getItem('userData');
             const storedUserData = JSON.parse(storedUserDataString);
 
-           //console.log(storedUserData);
+            //console.log(storedUserData);
 
             getCase(storedUserData.passport, storedUserData.userid, 'div_case');
 
@@ -439,7 +439,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(success, error);
             } else {
-                alert("Geolocation is not supported by this browser.");
+                showMessage("Alert", "Geolocation is not supported by this browser.", "warning");
+                //alert("Geolocation is not supported by this browser.");
             }
         }
 
@@ -460,7 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function error(err) {
             console.warn(`ERROR(${err.code}): ${err.message}`);
-            alert("Unable to retrieve location.");
+            showMessage("Alert", "Unable to retrieve location..", "warning");
+            //alert("Unable to retrieve location.");
         }
 
         // Reusable methods
@@ -468,21 +470,24 @@ document.addEventListener('DOMContentLoaded', () => {
         function getLatitude() {
             if (currentLat !== null)
                 return currentLat;
-            alert("Latitude not available. Call getLocation() first.");
+            showMessage("Alert", "Latitude not available. ", "warning");
+            //alert("Latitude not available. Call getLocation() first.");
             return null;
         }
 
         function getLongitude() {
             if (currentLon !== null)
                 return currentLon;
-            alert("Longitude not available. Call getLocation() first.");
+            showMessage("Alert", "Longitude not available. ", "warning");
+            //alert("Longitude not available. Call getLocation() first.");
             return null;
         }
 
         function getAddressName() {
             if (currentAddress !== null)
                 return currentAddress;
-            alert("Address not available. Call getLocation() first.");
+            showMessage("Alert", "Address not available. ", "warning");
+            //alert("Address not available. Call getLocation() first.");
             return null;
         }
 
@@ -1588,7 +1593,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 // Store JSON string in localStorage
                                 localStorage.setItem('userData', userDataString);
-                                
+
                                 location.href = 'home.html';
                             } else {
                                 alert("No Data to load");
