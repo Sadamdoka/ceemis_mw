@@ -429,67 +429,71 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        //location Manager
+        // location Manager
         let currentLat = null;
         let currentLon = null;
         let currentAddress = null;
 
-        // Request user location
+// Replace with your Google Maps API Key
+        const GOOGLE_API_KEY = "AIzaSyCgA4b1Rhxaw-gQT6QxhohhlzdkDG6OHuc";
+
+// Request user location
         function getLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(success, error);
+                navigator.geolocation.getCurrentPosition(success, error, {enableHighAccuracy: true});
             } else {
                 showMessage("Alert", "Geolocation is not supported by this browser.", "warning");
-                //alert("Geolocation is not supported by this browser.");
             }
         }
 
         function success(position) {
             currentLat = position.coords.latitude;
             currentLon = position.coords.longitude;
-            //document.getElementById("coords").innerText = `Lat: ${currentLat}, Lon: ${currentLon}`;
 
-            // Reverse geocode to get address
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${currentLat}&lon=${currentLon}&format=json`)
+            // Reverse geocode to get address using Google Maps API
+            fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${currentLat},${currentLon}&key=${GOOGLE_API_KEY}`)
                     .then(response => response.json())
                     .then(data => {
-                        currentAddress = data.display_name;
-                        //document.getElementById("address").innerText = currentAddress;
+                        if (data.status === "OK" && data.results.length > 0) {
+                            currentAddress = data.results[0].formatted_address;
+                        } else {
+                            currentAddress = null;
+                            showMessage("Alert", "Unable to retrieve address from Google Maps.", "warning");
+                        }
                     })
-                    .catch(err => console.error(err));
+                    .catch(err => {
+                        console.error(err);
+                        showMessage("Alert", "Error retrieving address.", "warning");
+                    });
         }
 
         function error(err) {
             console.warn(`ERROR(${err.code}): ${err.message}`);
-            showMessage("Alert", "Unable to retrieve location..", "warning");
-            //alert("Unable to retrieve location.");
+            showMessage("Alert", "Unable to retrieve location.", "warning");
         }
 
-        // Reusable methods
-
+// Reusable methods
         function getLatitude() {
             if (currentLat !== null)
                 return currentLat;
-            showMessage("Alert", "Latitude not available. ", "warning");
-            //alert("Latitude not available. Call getLocation() first.");
+            showMessage("Alert", "Latitude not available. Call getLocation() first.", "warning");
             return null;
         }
 
         function getLongitude() {
             if (currentLon !== null)
                 return currentLon;
-            showMessage("Alert", "Longitude not available. ", "warning");
-            //alert("Longitude not available. Call getLocation() first.");
+            showMessage("Alert", "Longitude not available. Call getLocation() first.", "warning");
             return null;
         }
 
         function getAddressName() {
             if (currentAddress !== null)
                 return currentAddress;
-            showMessage("Alert", "Address not available. ", "warning");
-            //alert("Address not available. Call getLocation() first.");
+            showMessage("Alert", "Address not available. Call getLocation() first.", "warning");
             return null;
         }
+
 
         function logout(event) {
             event.preventDefault(); // stop immediate navigation
