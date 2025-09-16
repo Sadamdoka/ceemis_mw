@@ -29,13 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Check if user data exists
             if (!storedUserData) {
-                // Redirect to login page if not logged in
-                //window.location.href = 'index.html';
+                // Redirect to login page only if not already there
+                if (!window.location.href.includes('index.html')) {
+                    window.location.href = 'index.html';
+                }
             } else {
-                // Optionally, continue on home page or do nothing if already there
-                // console.log('User is logged in:', storedUserData.names);
-                window.location.href = 'home.html';
+                // Redirect to home page only if not already there
+                if (!window.location.href.includes('home.html')) {
+                    window.location.href = 'home.html';
+                }
             }
+
 
         }
 
@@ -285,6 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const caseId = e.target.getAttribute("data-case-id");
                     document.getElementById("case_id").value = caseId;
                     loadMsg(caseId);
+                }
+            });
+            
+            
+            // Attach event listener after rendering
+            document.addEventListener("click", function (e) {
+                if (e.target.classList.contains("case-activity-btn")) {
+                    const caseId = e.target.getAttribute("data-case-id");
+                    document.getElementById("case_id").value = caseId;
+                    loadLogsTimelime(caseId, 'timeline');
                 }
             });
 
@@ -1678,7 +1692,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
         }
 
-
         function populateCases(data, elm) {
             const container = document.getElementById(elm);
 
@@ -1706,8 +1719,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <h3>${item.comp_category}</h3>
                                             <p>${item.mw_assistance}</p>
                                             <p class="text-center">${item.mw_loca}</p>
-                                            
-                                            ${getCaseStatus(item.case_status, item.case_id)}
+                                               <ul class="btn-list d-flex justify-content-between">
+                                                    <li class="width">
+                                                            <button type="button" class="btn btn-info btn-sm case-activity-btn" data-bs-toggle="offcanvas" data-bs-target="#caseTimeline" data-case-id="${item.case_id}" >Case Activity</button>
+                                                       
+                                                    </li>
+                                                    <li>
+                                                            ${getCaseStatus(item.case_status, item.case_id)}
+                                                       
+                                                    </li>
+                                                </ul>
                                         </div>
                                         <small class="text-muted mt-3 text-end d-block">${item.datereg}</small>
                                     </div>
@@ -1717,6 +1738,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(card);
             });
         }
+
 
 
         function getCaseStatus(input, caseId) {
@@ -1888,6 +1910,120 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage('Error', "Check Your Internet Connection!", 'error');
             });
         }
+
+
+
+        function loadLogsTimelime(input, elm) {
+            // console.log(input);
+            try {
+                $.ajax({
+                    url: url + "fetch/log/0/" + input + "/null",
+                    dataType: 'json',
+                    type: 'get',
+                    cache: false,
+                    // timeout:3000, //3 second timeout 
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {               //tbody.html("<tr><td colspan='5' align='center'><i class = 'fa fa-spinner spin'></i> Loading</td></tr>");
+                        //$("#" + elm).html('<tr><td colspan="8" align="center"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></td></tr>');
+                    },
+                    complete: function (data) {
+                        //tbody.html("<i class = 'fa fa-spinner spin'></i> Please Wait.."+ JSON.stringify(data));
+                    },
+                    success: function (data) {
+                        var e_data = '';
+                        try {
+                            loadTimeline(elm, data);
+                        } catch (e) {
+                            console.log(e);
+                            showMessage('Error', "Check Your Internet Connection!", 'error');
+                        }
+                    },
+                    error: function (d) {
+                        console.log(d);
+                        showMessage('Error', "Check Your Internet Connection!", 'error');
+                    }
+                });
+            } catch (ex) {
+                console.log(ex);
+                showMessage('Error', "Check Your Internet Connection!", 'error');
+
+            }
+        }
+
+// Function to populate timeline
+// Function to populate timeline with JSON object array
+        function loadTimeline(elm, logData) {
+            const timeline = document.getElementById(elm);  // Ensure elm is passed and used to select the container
+
+            console.log(logData);
+            // Check if logData has a 'log' key
+            if (!logData || !logData.log || !Array.isArray(logData.log)) {
+                console.error("Invalid log data structure");
+                return;
+            }
+
+            logData.log.forEach(entry => {
+                // Create timeline event container
+                const timelineEvent = document.createElement("li");
+                timelineEvent.classList.add("timeline-event");
+
+                // Create date element (ensure entry.datereg exists)
+                const timelineDate = document.createElement("div");
+                timelineDate.classList.add("timeline-date");
+                timelineDate.textContent = entry.datereg || "No date available";  // Fallback if no date
+
+                // Create dot
+                const timelineDot = document.createElement("div");
+                timelineDot.classList.add("timeline-dot");
+
+                // Create event content
+                const timelineContent = document.createElement("div");
+                timelineContent.classList.add("timeline-event-content");
+
+                // Safely insert content by checking if the properties exist
+                const name = entry.name ? escapeHTML(entry.name) : "Unknown Name";
+                const id = entry.id ? escapeHTML(entry.id) : "No ID";
+                const status = entry.status ? escapeHTML(entry.status) : "No Status";
+                const actedBy = entry.act_by ? escapeHTML(entry.act_by) : "No actor";
+                const ref = entry.ref ? escapeHTML(entry.ref) : "No reference";
+                const details = entry.details ? escapeHTML(entry.details) : "No details";
+
+                timelineContent.innerHTML = `
+            <strong>${name}</strong><br>
+            <span class="event-snippet">Reference: ${ref}</span><br>
+            <span class="event-snippet">Action: ${details}</span>
+            <span class="event-snippet">Acted by: ${actedBy}</span><br>
+        `;
+
+                // Append elements to the timeline event
+                timelineEvent.appendChild(timelineDate);
+                timelineEvent.appendChild(timelineDot);
+                timelineEvent.appendChild(timelineContent);
+
+                // Append the event to the timeline container
+                timeline.appendChild(timelineEvent);
+            });
+        }
+
+// Helper function to escape HTML characters to prevent XSS
+        function escapeHTML(str) {
+            return str.replace(/[&<>"'`=\/]/g, (match) => {
+                const escapeMap = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;',
+                    '`': '&#096;',
+                    '=': '&#61;',
+                    '/': '&#47;'
+                };
+                return escapeMap[match];
+            });
+        }
+
+
 
 
         function internalCaseReport(status, name, phone, email, passport, userid, job, lco, fco, lati, longi, loca, assistance, category, file) {
